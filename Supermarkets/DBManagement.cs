@@ -34,9 +34,9 @@ namespace Supermarkets
                     case "3":
                         ChangeProductQuantity();
                         break;
-                    //case "4":
-                    //    BuyProduct();
-                    //    break;
+                    case "4":
+                        BuyProduct();
+                        break;
                     case "5":
                         exit = true;
                         break;
@@ -135,7 +135,7 @@ namespace Supermarkets
                 Console.WriteLine("Select a product to change its quantity:");
                 foreach (var product in context.Products)
                 {
-                    Console.WriteLine($"\t{product.ID}. {product.Name},\tquantity - {product.Quantity}");
+                    Console.WriteLine($" {product.ID}. {product.Name},\tquantity - {product.Quantity}");
                 }
                 Console.WriteLine("Other - Go to main menu");
 
@@ -152,5 +152,65 @@ namespace Supermarkets
             }
         }
 
+        public void BuyProduct()
+        {
+            Console.Clear();
+
+            using (var context = new ShopsContext())
+            {
+                Console.WriteLine("Select a shop to buy the product:");
+                Console.WriteLine(" 0. All products");
+
+                foreach (var shop in context.Shops)
+                {
+                    Console.WriteLine($" {shop.ID}. {shop.Name}");
+                }
+                var shopID = Int32.Parse(Console.ReadLine());
+
+                if (shopID != 0)
+                {
+                    var shop = context.Shops.Find(shopID);
+                    if (shop != null)
+                    {                        
+                        var products = shop.Products.Where(x => x.Quantity > 0).ToList();
+                        BuyProductFromList(products);
+                    }
+                }
+                else
+                {
+                    var products = context.Products.Where(x => x.Quantity > 0).ToList();
+                    BuyProductFromList(products);
+                }
+
+                context.SaveChanges();
+            }
+        }
+
+        private void BuyProductFromList(List<Product> products)
+        {
+            Console.WriteLine("Select a product to buy:");
+            for (int productIndex = 0; productIndex < products.Count; productIndex++)
+            {
+                Console.WriteLine($" {productIndex + 1}. {products[productIndex].Name}, quantity: {products[productIndex].Quantity}, price: {products[productIndex].Price}");
+            }
+            Console.WriteLine("Other - Go to main menu");
+            var index = Int32.Parse(Console.ReadLine());
+
+            if (index != 0 && index <= products.Count)
+            {
+                Console.WriteLine($"How much product do you want to buy? (max: {products[index - 1].Quantity})");
+                var quantityToBuy = Int32.Parse(Console.ReadLine());
+                if (quantityToBuy <= products[index - 1].Quantity)
+                {
+                    products[index - 1].Quantity -= quantityToBuy;
+                }
+                else
+                {
+                    Console.WriteLine("No so much product.\nPress any key to return to main menu");
+                    Console.ReadKey();
+                }
+            }
+        }
+         
     }
 }
